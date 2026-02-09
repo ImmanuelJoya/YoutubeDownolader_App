@@ -12,6 +12,12 @@ youtube-downloader-app/
 │   ├── main.py
 │   ├── requirements.txt
 │   └── downloads/          # Temporary storage
-└── mobile/                 # React Native app
-    └── (coming soon)
+└── mobile/
+├── App.js                 # Main entry (we'll rebuild this)
+├── src/
+│   ├── components/        # Reusable UI parts
+│   ├── screens/           # App screens
+│   ├── api/               # Backend communication
+│   └── utils/             # Helpers
+└── package.json
 ```
