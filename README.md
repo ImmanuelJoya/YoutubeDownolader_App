@@ -13,11 +13,16 @@ youtube-downloader-app/
 │   ├── requirements.txt
 │   └── downloads/          # Temporary storage
 └── mobile/
-├── App.js                 # Main entry (we'll rebuild this)
+├── app/
+│   ├── (tabs)/
+│   │   ├── _layout.tsx      # Tab navigation config (exists)
+│   │   ├── index.tsx        # Home tab - we'll rebuild this
+│   │   └── explore.tsx      # Explore tab (exists)
+│   └── _layout.tsx          # Root layout (exists)
 ├── src/
-│   ├── components/        # Reusable UI parts
-│   ├── screens/           # App screens
-│   ├── api/               # Backend communication
-│   └── utils/             # Helpers
+│   ├── api/
+│   │   └── client.js        # API client
+│   └── components/
+│       └── VideoDownloader.tsx  # Main component
 └── package.json
 ```
