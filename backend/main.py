@@ -4,6 +4,8 @@ import yt_dlp
 import os
 import uuid
 from pathlib import Path
+from fastapi.responses import StreamingResponse
+import mimetypes
 
 app = FastAPI(title="YouTube Downloader API")
 
@@ -80,6 +82,28 @@ async def download_video(url: str, format_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/download-file/{filename}")
+async def download_file(filename: str):
+    """Stream file for mobile download"""
+    file_path = DOWNLOAD_DIR / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    mime_type, _ = mimetypes.guess_type(str(file_path))
+    
+    def iterfile():
+        with open(file_path, "rb") as f:
+            yield from f
+    
+    return StreamingResponse(
+        iterfile(),
+        media_type=mime_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 @app.get("/file/{filename}")
 async def get_file(filename: str):
