@@ -8,12 +8,15 @@ from fastapi.responses import StreamingResponse
 import mimetypes
 from fastapi.responses import FileResponse
 
+# Set Node.js path for yt-dlp JS runtime
+os.environ['NODE_PATH'] = r'C:\Program Files\nodejs'
+
 app = FastAPI(title="YouTube Downloader API")
 
 # Allow mobile app to connect
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your app URL
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -33,15 +36,26 @@ async def get_video_info(url: str):
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
+            'nocheckcertificate': True,
+            # Use a common browser user-agent to avoid 403
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'referer': 'https://www.youtube.com/',
+            # Add headers to mimic browser
+            'headers': {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
+            },
         }
+        
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             
-            # Get best thumbnail (usually the last/highest res)
+            # Get best thumbnail
             thumbnails = info.get('thumbnails', [])
             thumbnail_url = None
             if thumbnails:
-                # Try to get the highest resolution thumbnail
+                # Get highest resolution thumbnail
                 thumbnail_url = thumbnails[-1].get('url')
             if not thumbnail_url:
                 thumbnail_url = info.get('thumbnail')
@@ -80,8 +94,8 @@ async def get_video_info(url: str):
                     'filesize': filesize,
                     'vcodec': f.get('vcodec'),
                     'acodec': f.get('acodec'),
-                    'abr': f.get('abr'),  # audio bitrate
-                    'vbr': f.get('vbr'),  # video bitrate
+                    'abr': f.get('abr'),
+                    'vbr': f.get('vbr'),
                 })
             
             # Sort formats: best quality first, prioritize video+audio
@@ -95,15 +109,14 @@ async def get_video_info(url: str):
                 'uploader': info.get('uploader', 'Unknown Artist'),
                 'duration': info.get('duration', 0),
                 'thumbnail': thumbnail_url,
-                'description': info.get('description', '')[:200],  # First 200 chars
+                'description': info.get('description', '')[:200],
                 'view_count': info.get('view_count'),
                 'upload_date': info.get('upload_date'),
-                'formats': formats[:15]  # Limit to top 15 formats
+                'formats': formats[:15]
             }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
-    
+
 @app.post("/download")
 async def download_video(url: str, format_id: str):
     """Download video/audio to server"""
@@ -114,6 +127,15 @@ async def download_video(url: str, format_id: str):
             'format': format_id,
             'outtmpl': str(DOWNLOAD_DIR / f'{download_id}_%(title)s.%(ext)s'),
             'quiet': True,
+            'nocheckcertificate': True,
+            # Add browser headers to avoid 403
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'referer': 'https://www.youtube.com/',
+            'headers': {
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Origin': 'https://www.youtube.com',
+            },
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -127,7 +149,7 @@ async def download_video(url: str, format_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 @app.get("/download-file/{filename}")
 async def download_file(filename: str):
     """Stream file for mobile download"""
@@ -163,16 +185,6 @@ async def get_file(filename: str):
         filename=filename,
         media_type='application/octet-stream'
     )
-
-@app.get("/file/{filename}")
-async def get_file(filename: str):
-    """Download file from server"""
-    file_path = DOWNLOAD_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    from fastapi.responses import FileResponse
-    return FileResponse(file_path)
 
 if __name__ == "__main__":
     import uvicorn
