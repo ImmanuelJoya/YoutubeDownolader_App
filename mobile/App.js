@@ -29,7 +29,7 @@ export default function App() {
         try {
             const info = await getVideoInfo(url);
             setVideoInfo(info);
-            // Auto-select best quality
+            
             const bestFormat = info.formats.find(f =>
                 f.vcodec !== 'none' && f.acodec !== 'none'
             ) || info.formats[0];
