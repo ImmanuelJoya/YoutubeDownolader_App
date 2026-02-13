@@ -8,12 +8,11 @@ from fastapi.responses import StreamingResponse
 import mimetypes
 from fastapi.responses import FileResponse
 
-# Set Node.js path for yt-dlp JS runtime
 os.environ['NODE_PATH'] = r'C:\Program Files\nodejs'
 
 app = FastAPI(title="YouTube Downloader API")
 
-# Allow mobile app to connect
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
