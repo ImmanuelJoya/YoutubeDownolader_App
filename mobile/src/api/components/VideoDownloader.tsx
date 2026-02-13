@@ -93,7 +93,7 @@ export default function VideoDownloader() {
             );
 
             Alert.alert(
-                '✅ Download Complete!',
+                'Download Complete!',
                 `"${videoInfo.title}" has been saved to your phone's Downloads folder in "YouTube Downloads" album.`,
                 [{ text: 'OK' }]
             );
@@ -105,7 +105,7 @@ export default function VideoDownloader() {
             setIsTransferring(false);
             setLoading(false);
             const errorMessage = error instanceof Error ? error.message : 'Download failed';
-            Alert.alert('❌ Error', errorMessage);
+            Alert.alert('Error', errorMessage);
             console.error(error);
         }
     };
