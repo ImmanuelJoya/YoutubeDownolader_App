@@ -36,10 +36,8 @@ async def get_video_info(url: str):
             'no_warnings': True,
             'extract_flat': False,
             'nocheckcertificate': True,
-            # Use a common browser user-agent to avoid 403
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'referer': 'https://www.youtube.com/',
-            # Add headers to mimic browser
             'headers': {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
